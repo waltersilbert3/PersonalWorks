@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        #chat { height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+        .bubble { margin: 5px 0; padding: 10px; border-radius: 10px; }
+        .user { background-color: #d1f0d1; text-align: right; }
+        .ai { background-color: #f0d1d1; text-align: left; }
+        #message { width: calc(100% - 80px); padding: 10px; }
+        #send { padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>AI Chat</h1>
+    <div id="chat"></div>
+    <input id="message" type="text" placeholder="Type your message..." />
+    <button id="send">Send</button>
+
+    <script>
+        const chatDiv = document.getElementById('chat');
+        const messageInput = document.getElementById('message');
+        const sendButton = document.getElementById('send');
+
+        async function fetchHistory() {
+            const response = await fetch('/history');
+            const data = await response.json();
+            if (data.history) {
+                data.history.forEach(chat => {
+                    const bubble = document.createElement('div');
+                    bubble.className = `bubble ${chat.is_user ? 'user' : 'ai'}`;
+                    bubble.innerText = chat.message;
+                    chatDiv.appendChild(bubble);
+                });
+                chatDiv.scrollTop = chatDiv.scrollHeight;
+            }
+        }
+
+        async function sendMessage() {
+            const userMessage = messageInput.value;
+            if (!userMessage) return;
+
+            const userBubble = document.createElement('div');
+            userBubble.className = 'bubble user';
+            userBubble.innerText = userMessage;
+            chatDiv.appendChild(userBubble);
+
+            messageInput.value = '';
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: userMessage })
+            });
+            const data = await response.json();
+            if (data.response) {
+                const aiBubble = document.createElement('div');
+                aiBubble.className = 'bubble ai';
+                aiBubble.innerText = data.response;
+                chatDiv.appendChild(aiBubble);
+            }
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        fetchHistory();
+    </script>
+</body>
+</html>
