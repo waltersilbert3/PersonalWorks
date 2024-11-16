@@ -5,13 +5,13 @@ import openai
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # Replace with a secure key
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'  # Replace with your database URI if needed
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 
-openai.api_key = "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"
+openai.api_key = "your_openai_api_key"
 
 # Database Models
 class User(db.Model):
@@ -104,5 +104,6 @@ def history():
     return jsonify({"history": chat})
 
 if __name__ == '__main__':
-    db.create_all()  # Create database tables
+    with app.app_context():
+        db.create_all()  # Create database tables
     app.run(debug=True)
